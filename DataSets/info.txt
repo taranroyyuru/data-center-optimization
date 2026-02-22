@@ -1,0 +1,3 @@
+im3_data_centers_with_Subregion_and_Renewables_clean - has subregions, datacenters, and the renwable energy
+egrid2023_data_rev2 - has carbon/renewable data for subregions
+egrid2023_subregions.kmz - has the actual overlay grid with polygons for each region, extra file that has multiple subregion intersections, need to use both
