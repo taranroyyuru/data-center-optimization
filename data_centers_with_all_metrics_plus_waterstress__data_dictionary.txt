@@ -1,0 +1,288 @@
+Data dictionary: data_centers_with_all_metrics_plus_waterstress.csv
+
+Overview
+- Each row represents ONE data center (unique by `id`).
+- Columns come from multiple sources that were merged:
+  (1) Data center attributes + eGRID-style emissions/renewables fields
+  (2) Energy-zone assignment from CONUS electricity GeoJSON
+  (3) Zone-level annual averages + growth metrics computed from daily energy data (2021–2025)
+  (4) Nearest renewable power plant distance/type/capacity (nearest-neighbor)
+  (5) Water-stress basin assignment (pfaf_id) + Aqueduct-style future annual metrics (BAU 2050) and a composite index
+
+Conventions
+- Units are included when known (km, m, MW, gCO2e/kWh, lb/MWh, %).
+- “Higher is better?” indicates whether a larger value typically implies improved sustainability.
+- Some fields appear twice (e.g., coordinates/type) because they originate from different upstream datasets; they are preserved to avoid overwriting.
+
+──────────────────────────────────────────────────────────────────────────────
+A) Data center identity & categorical descriptors
+
+id
+- Meaning: Unique data center identifier used as the join key across datasets.
+- Type: integer/string ID
+- Higher is better?: N/A
+
+facility_name
+- Meaning: Data center facility name from the IM3-style dataset (the one that had renewables_pct / eGRID metrics / urban distance).
+- Type: text
+- Higher is better?: N/A
+
+name
+- Meaning: Data center name from the coordinate/atlas dataset used for energy-zone matching.
+- Type: text
+- Higher is better?: N/A
+
+subregion
+- Meaning: Coarse regional grouping label from the IM3 dataset (NOT the same as energy zones).
+- Type: categorical text
+- Higher is better?: N/A
+
+type_nearest
+- Meaning: Data center “type” label from the IM3/nearest-renewable-plant dataset (e.g., building/campus).
+- Type: categorical text
+- Higher is better?: N/A
+
+type_energy
+- Meaning: Data center “type” label from the energy-zone-matched dataset (may differ from type_nearest).
+- Type: categorical text
+- Higher is better?: N/A
+
+
+──────────────────────────────────────────────────────────────────────────────
+B) Data center coordinates (multiple sources)
+
+lat_nearest
+- Meaning: Latitude used in the nearest renewable power plant / urban distance pipeline (IM3 dataset).
+- Units: degrees (WGS84 / EPSG:4326)
+- Higher is better?: N/A
+
+long
+- Meaning: Longitude (spelled “long”) from the IM3 dataset.
+- Units: degrees (WGS84 / EPSG:4326)
+- Higher is better?: N/A
+
+lat_energy
+- Meaning: Latitude from the atlas dataset used to assign energy_zone_id (energy-zone matching).
+- Units: degrees (WGS84 / EPSG:4326)
+- Higher is better?: N/A
+
+lon
+- Meaning: Longitude from the atlas dataset used to assign energy_zone_id.
+- Units: degrees (WGS84 / EPSG:4326)
+- Higher is better?: N/A
+
+Note on duplicate coordinate fields:
+- lat_nearest/long and lat_energy/lon should be close for the same data center id.
+- Both are retained to preserve provenance and avoid silently overwriting any upstream values.
+
+
+──────────────────────────────────────────────────────────────────────────────
+C) Urban proximity (noise/siting constraint inputs)
+
+dist_to_urban_m
+- Meaning: Distance from the data center point to the nearest urban polygon boundary/feature (urban centers).
+- Units: meters
+- Higher is better?: Yes (farther from urban areas reduces noise impacts / improves siting compliance)
+
+dist_to_urban_km
+- Meaning: Same as dist_to_urban_m, converted to kilometers.
+- Units: km
+- Higher is better?: Yes
+
+
+──────────────────────────────────────────────────────────────────────────────
+D) Nearest renewable power plant proximity + attributes (nearest-neighbor)
+
+nearest_plant_dist_km
+- Meaning: Great-circle distance from the data center to the nearest renewable power plant.
+- Units: km
+- Higher is better?: No (smaller distance generally means better renewable availability proximity)
+
+nearest_plant_type
+- Meaning: Primary fuel/type of the nearest renewable plant (e.g., Solar, Wind, Hydro, Biomass, Geothermal, Waste).
+- Units: categorical
+- Higher is better?: Depends (interpret by category)
+
+nearest_plant_capacity_mw
+- Meaning: Nameplate capacity of the nearest renewable power plant.
+- Units: MW
+- Higher is better?: Often yes (more nearby capacity can imply stronger renewable availability)
+
+
+──────────────────────────────────────────────────────────────────────────────
+E) Data-center-level renewables & emissions proxies (eGRID-style)
+
+renewables_pct
+- Meaning: Percent renewables attributed to the data center (or grid/procurement proxy depending on upstream definition).
+- Units: percent (%)
+- Higher is better?: Yes
+
+co2e_lb_per_mwh_egrid2023
+- Meaning: CO2-equivalent emissions intensity (e.g., using eGRID 2023 factors).
+- Units: pounds CO2e per MWh (lb/MWh)
+- Higher is better?: No (lower emissions intensity is better)
+
+co2_lb_per_mwh_egrid2023
+- Meaning: CO2 (not CO2e) emissions intensity (eGRID 2023-based).
+- Units: pounds CO2 per MWh (lb/MWh)
+- Higher is better?: No
+
+
+──────────────────────────────────────────────────────────────────────────────
+F) Energy-zone mapping (GeoJSON regions)
+
+energy_zone_id
+- Meaning: Electricity grid/region identifier (matches the daily energy dataset “Zone id”, e.g., US-CAL-CISO, US-TEX-ERCO).
+- Units: categorical ID
+- Higher is better?: N/A
+
+energy_zone_name
+- Meaning: Human-readable zone description/name from GeoJSON region properties.
+- Units: text
+- Higher is better?: N/A
+
+
+──────────────────────────────────────────────────────────────────────────────
+G) Zone-level annual averages (computed from daily energy time series)
+
+These are annual averages per energy_zone_id, computed as:
+- For each zone and year: mean of the daily values within that year.
+They are then joined onto each data center by energy_zone_id.
+
+Carbon-free energy percentage (CFE%) annual averages:
+carbon_free_energy_percentage_cfe_avg_2021
+carbon_free_energy_percentage_cfe_avg_2023
+carbon_free_energy_percentage_cfe_avg_2024
+carbon_free_energy_percentage_cfe_avg_2025
+- Meaning: Annual average CFE% for the zone in that year.
+- Units: percent (%)
+- Higher is better?: Yes
+
+Carbon intensity (direct) annual averages:
+carbon_intensity_gco_eq_kwh_direct_avg_2021
+carbon_intensity_gco_eq_kwh_direct_avg_2023
+carbon_intensity_gco_eq_kwh_direct_avg_2024
+carbon_intensity_gco_eq_kwh_direct_avg_2025
+- Meaning: Annual average direct carbon intensity for the zone.
+- Units: gCO2e per kWh (gCO2e/kWh)
+- Higher is better?: No
+
+Carbon intensity (life cycle) annual averages:
+carbon_intensity_gco_eq_kwh_life_cycle_avg_2021
+carbon_intensity_gco_eq_kwh_life_cycle_avg_2023
+carbon_intensity_gco_eq_kwh_life_cycle_avg_2024
+carbon_intensity_gco_eq_kwh_life_cycle_avg_2025
+- Meaning: Annual average life-cycle carbon intensity for the zone.
+- Units: gCO2e per kWh (gCO2e/kWh)
+- Higher is better?: No
+
+
+──────────────────────────────────────────────────────────────────────────────
+H) Zone-level growth metrics (2021 → 2025)
+
+All growth metrics use annual averages:
+- y2021 = annual average value in 2021 (per zone)
+- y2025 = annual average value in 2025 (per zone)
+
+Definitions:
+- Growth factor = y2025 / y2021
+- Percent change = (y2025 - y2021) / y2021 * 100
+- CAGR (compound annual growth rate) = (y2025 / y2021)^(1/4) - 1
+  (1/4 because 2021→2025 spans 4 year-to-year intervals)
+
+Direct carbon intensity growth:
+carbon_intensity_direct_growth_factor_2025_over_2021
+carbon_intensity_direct_pct_change_2025_vs_2021
+carbon_intensity_direct_cagr_2021_to_2025
+- Higher is better?: Typically No for growth factor/pct change/CAGR (negative CAGR indicates improvement)
+
+Lifecycle carbon intensity growth:
+carbon_intensity_lifecycle_growth_factor_2025_over_2021
+carbon_intensity_lifecycle_pct_change_2025_vs_2021
+carbon_intensity_lifecycle_cagr_2021_to_2025
+- Higher is better?: Typically No (negative implies decreasing carbon intensity)
+
+CFE% growth:
+cfe_pct_growth_factor_2025_over_2021
+cfe_pct_pct_change_2025_vs_2021
+cfe_pct_cagr_2021_to_2025
+- Higher is better?: Yes (positive implies increasing carbon-free energy share)
+
+
+──────────────────────────────────────────────────────────────────────────────
+I) Water-stress basin mapping + key Aqueduct-style metrics (BAU 2050)
+
+pfaf_id
+- Meaning: Basin/catchment region identifier assigned via point-in-polygon from Aqueduct basin polygons.
+- Units: integer ID
+- Higher is better?: N/A
+
+The following fields are from the “future_annual” Aqueduct-style dataset.
+Naming pattern: {scenario}{year}_{indicator}_x_{suffix}
+- scenario: bau = business-as-usual
+- year: 50 = 2050 projection
+- indicator:
+  - ws = water stress
+  - wd = water depletion
+  - sv = seasonal variability
+- suffix:
+  - _s = score (normalized risk score)
+  - _c = category (bucketed integer)
+  - _l = label (human-readable category label)
+
+Water stress (BAU 2050):
+bau50_ws_x_s
+- Meaning: Water stress risk score in 2050 under BAU scenario.
+- Units: score (unitless, comparable across basins)
+- Higher is better?: No (higher score = higher risk)
+
+bau50_ws_x_c
+- Meaning: Category code for water stress in 2050 BAU.
+- Units: integer category
+- Higher is better?: No
+
+bau50_ws_x_l
+- Meaning: Human-readable label describing water stress category.
+- Units: text label
+- Higher is better?: No
+
+Water depletion (BAU 2050):
+bau50_wd_x_s
+- Meaning: Water depletion risk score in 2050 under BAU scenario.
+- Units: score
+- Higher is better?: No
+
+bau50_wd_x_c
+- Meaning: Category code for water depletion.
+- Units: integer category
+- Higher is better?: No
+
+bau50_wd_x_l
+- Meaning: Human-readable label for water depletion category.
+- Units: text label
+- Higher is better?: No
+
+Seasonal variability (BAU 2050):
+bau50_sv_x_s
+- Meaning: Seasonal variability risk score in 2050 under BAU scenario.
+- Units: score
+- Higher is better?: No (higher variability = higher operational risk)
+
+bau50_sv_x_c
+- Meaning: Category code for seasonal variability.
+- Units: integer category
+- Higher is better?: No
+
+bau50_sv_x_l
+- Meaning: Human-readable label for seasonal variability category.
+- Units: text label
+- Higher is better?: No
+
+water_risk_index_bau50
+- Meaning: Composite water risk index (BAU 2050) computed from scores:
+  water_risk_index_bau50 = 0.6*bau50_ws_x_s + 0.3*bau50_wd_x_s + 0.1*bau50_sv_x_s
+- Units: score (unitless)
+- Higher is better?: No (higher composite = higher water risk)
+
+
+End of data dictionary.
