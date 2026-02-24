@@ -1,0 +1,2 @@
+datasets/Aqueduct40_waterrisk_download_Y2023M07D05/GDB/**/*.gdbtable filter=lfs diff=lfs merge=lfs -text
+datasets/Aqueduct40_waterrisk_download_Y2023M07D05/GDB/*.gdbtable filter=lfs diff=lfs merge=lfs -text

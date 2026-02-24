@@ -1,0 +1,38 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Large output files (optional - you can include these if you want)
+*.html
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# IDE
+*.swp
+*.swo
+
+# data
+data/
+datasets/
+
+
+# geojson files
+geojson_files/
+
+
+# notebooks
+*.ipynb
+
+# figures
+figures/
+
+# caches
+*.sqlite
+.cache*
+
